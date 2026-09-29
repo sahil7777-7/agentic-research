@@ -1284,28 +1284,118 @@
       animation: fadeInUp 0.4s ease forwards;
     }
 
-    /* Responsive */
+    /* ============================================================
+       RESPONSIVE BREAKPOINTS
+       ============================================================ */
+
+    /* Tablet ≤ 900px */
     @media (max-width: 900px) {
+      .nav { padding: 14px 24px; }
+      .workspace { padding: 56px 24px 64px; }
+      .ws-title { font-size: 2.4rem; }
+      .ws-subtitle { font-size: 1rem; }
+
       .research-grid {
         grid-template-columns: 1fr;
-        gap: 32px;
+        gap: 28px;
       }
-      .sidebar { position: static; }
+      .sidebar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .pipeline { padding: 24px 24px 0; }
       .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
       .p-step { border-bottom: 1px solid var(--border-lt); }
-      .report-sheet { padding: 32px 24px; }
-      .ws-title { font-size: 2.3rem; }
+
+      .report-sheet { padding: 32px 28px; }
+      .research-view { padding: 0 24px 80px; }
+      .research-banner { padding: 24px 28px 20px; }
+      .banner-topic { font-size: 2rem; }
+
+      .search-card { padding: 16px 18px 12px; }
     }
 
-    @media (max-width: 560px) {
-      .nav { padding: 14px 20px; }
-      .workspace { padding: 40px 16px; }
+    /* Small tablet / large phone ≤ 640px */
+    @media (max-width: 640px) {
+      .nav { padding: 12px 16px; }
+      .nav-logo-sub { display: none; }
+
+      .workspace { padding: 40px 16px 56px; }
+      .ws-title { font-size: 2rem; }
+      .ws-subtitle { font-size: 0.95rem; }
+
+      .search-card { padding: 14px 16px 10px; }
+      .search-textarea { font-size: 1rem; }
+
       .research-view { padding: 0 16px 60px; }
       .pipeline { padding: 20px 16px 0; }
+      .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
+
+      .research-banner { padding: 20px 20px 16px; }
+      .banner-topic { font-size: 1.75rem; }
+      .banner-meta-strip { gap: 10px; }
+
+      .report-sheet { padding: 24px 20px; }
+      .sheet-title { font-size: 1.6rem; }
+
+      .sidebar {
+        grid-template-columns: 1fr;
+      }
+
+      .review-card-body { padding: 16px; }
+      .review-score-track { width: 100px; }
+
+      .source-row { flex-wrap: wrap; gap: 8px; }
+      .source-action-btn { align-self: flex-end; }
+    }
+
+    /* Mobile phone ≤ 480px */
+    @media (max-width: 480px) {
+      .nav { padding: 10px 14px; }
+      .nav-logo-text { font-size: 0.9rem; }
+      .nav-link-btn { font-size: 0.75rem; padding: 5px 10px; }
+
+      .workspace { padding: 32px 14px 48px; }
+      .ws-title { font-size: 1.7rem; letter-spacing: -0.4px; }
+      .ws-subtitle { font-size: 0.9rem; }
+      .ws-pill { font-size: 0.65rem; }
+
+      .search-card { padding: 12px 14px 10px; }
+      .search-textarea { font-size: 0.95rem; min-height: 56px; }
+      .search-card-footer { flex-direction: column; align-items: stretch; gap: 10px; }
+      .search-btn { justify-content: center; width: 100%; padding: 12px; }
+
+      .examples-grid { gap: 6px; }
+      .example-chip { font-size: 0.76rem; padding: 6px 12px; }
+
+      .research-view { padding: 0 14px 48px; }
+      .pipeline { padding: 16px 14px 0; }
       .pipeline-steps { grid-template-columns: 1fr; }
-      .banner-topic { font-size: 1.8rem; }
-      .research-banner { padding: 20px; }
-      .search-card { padding: 14px; }
+      .p-step { padding: 14px 16px; }
+
+      .research-banner { padding: 16px 16px 14px; margin: 20px 0 24px; }
+      .banner-topic { font-size: 1.45rem; }
+      .banner-folio { font-size: 0.62rem; }
+      .research-banner-top { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+      .report-sheet { padding: 18px 16px; }
+      .sheet-title { font-size: 1.35rem; }
+      .report-article { font-size: 0.93rem; }
+      .report-article h1 { font-size: 1.4rem; }
+      .report-article h2 { font-size: 1.15rem; }
+      .report-article h3 { font-size: 1rem; }
+
+      .review-card-header { flex-wrap: wrap; gap: 12px; }
+      .review-score-digit { font-size: 1.5rem; }
+
+      .sources-card-header { flex-wrap: wrap; gap: 8px; }
+      .source-row { padding: 12px 16px; }
+      .source-name { font-size: 0.84rem; }
+
+      .back-btn { font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -1361,9 +1451,7 @@
       ></textarea>
 
       <div class="search-card-footer">
-        <div class="search-instructions">
-          Press <span class="kbd">↵ Enter</span> to run &nbsp;·&nbsp; <span class="kbd">Shift+↵</span> for newline
-        </div>
+        <div></div>
         <button class="search-btn" id="searchBtn" onclick="startResearch()">
           <div class="btn-spinner" id="btnSpinner"></div>
           <span id="btnLabel">Investigate</span>
