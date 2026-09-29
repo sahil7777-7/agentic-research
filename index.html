@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ResearchAI — Intelligent Research Desk</title>
+  <meta name="description" content="An intelligent research platform that searches, scrapes, synthesizes and reviews research on any topic."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+
+  <style>
+    /* ============================================================
+       RESET & PRESERVED COLOR TOKENS
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F4F1E8;
+      --surface:   #FFFFFF;
+      --text:      #171717;
+      --text-sec:  #6B6861;
+      --accent:    #C45A3C;
+      --teal:      #1F6F68;
+      --ochre:     #D6A84F;
+      --border:    #D9D4C8;
+      --border-lt: #E8E4DA;
+      --white:     #FFFFFF;
+      --danger:    #B33A2A;
+
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono:  'IBM Plex Mono', 'Menlo', monospace;
+
+      --max-w:     1160px;
+      --card-radius: 8px;
+      --inner-radius: 5px;
+
+      /* Refined subtle paper shadows */
+      --shadow-sm: 0 1px 3px rgba(23, 23, 23, 0.04), 0 1px 2px rgba(23, 23, 23, 0.02);
+      --shadow-md: 0 3px 12px rgba(23, 23, 23, 0.05), 0 1px 4px rgba(23, 23, 23, 0.03);
+      --shadow-lg: 0 10px 30px rgba(23, 23, 23, 0.06), 0 2px 8px rgba(23, 23, 23, 0.03);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #BFB9AC; }
+
+    /* ============================================================
+       NAVIGATION
+       ============================================================ */
+    .nav-wrap {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 16px 32px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: var(--inner-radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(196, 90, 60, 0.25);
+    }
+
+    .nav-logo-mark svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: var(--white);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-logo-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-logo-text {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .nav-logo-sub {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-sec);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .nav-link-btn {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-sec);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--inner-radius);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .nav-link-btn:hover {
+      color: var(--text);
+      background: rgba(23, 23, 23, 0.03);
+      border-color: var(--border-lt);
+    }
+
+    /* ============================================================
+       WORKSPACE (HOME / INPUT AREA)
+       ============================================================ */
+    .workspace {
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 72px 24px 80px;
+      transition: opacity 0.3s ease;
+    }
+
+    .workspace.hidden { display: none; }
+
+    .ws-header {
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .ws-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: rgba(31, 111, 104, 0.08);
+      border: 1px solid rgba(31, 111, 104, 0.2);
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--teal);
+      margin-bottom: 16px;
+    }
+
+    .ws-pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+    }
+
+    .ws-title {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      line-height: 1.12;
+      color: var(--text);
+      margin-bottom: 14px;
+      letter-spacing: -0.8px;
+    }
+
+    .ws-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-sec);
+      line-height: 1.6;
+      max-width: 620px;
+    }
+
+    /* ── RESEARCH BOX (FIXED OVERFLOW & IMPROVED STYLE) ── */
+    .search-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-md);
+      padding: 18px 20px 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .search-card:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(196, 90, 60, 0.12), var(--shadow-md);
+    }
+
+    .search-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border-lt);
+    }
+
+    .search-card-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-sec);
+      font-weight: 500;
+    }
+
+    .search-card-hint {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-sec);
+    }
+
+    /* Multi-line auto-wrapping text area so text NEVER gets clipped horizontally */
+    .search-textarea {
+      width: 100%;
+      min-height: 64px;
+      max-height: 240px;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--text);
+      resize: none;
+      overflow-y: auto;
+      word-break: break-word;
+      white-space: pre-wrap;
+      padding: 4px 0 10px;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    .search-textarea::placeholder {
+      color: #A8A399;
+      font-weight: 400;
+    }
+
+    .search-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-lt);
+      gap: 16px;
+    }
+
+    .search-instructions {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kbd {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.65rem;
+      color: var(--text);
+    }
+
+    .search-btn {
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      border-radius: var(--inner-radius);
+      padding: 10px 22px;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 2px 6px rgba(196, 90, 60, 0.25);
+    }
+
+    .search-btn:hover:not(:disabled) {
+      background: #B34E32;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(196, 90, 60, 0.3);
+    }
+
+    .search-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .search-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Example prompt chips */
+    .examples-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .examples-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+
+    .examples-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .example-chip {
+      font-size: 0.8rem;
+      color: var(--text-sec);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--inner-radius);
+      padding: 7px 14px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.2s ease;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .example-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ============================================================
+       PIPELINE PROGRESS LEDGER
+       ============================================================ */
+    .pipeline {
+      display: none;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 32px 32px 0;
+    }
+
+    .pipeline.show { display: block; }
+
+    .pipeline-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .pipeline-card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(244, 241, 232, 0.4);
+    }
+
+    .pipeline-card-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--text-sec);
+      font-weight: 600;
+    }
+
+    .pipeline-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--teal);
+    }
+
+    .pipeline-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      divide-x: 1px solid var(--border);
+    }
+
+    .p-step {
+      padding: 20px;
+      background: var(--white);
+      border-right: 1px solid var(--border-lt);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .p-step:last-child { border-right: none; }
+
+    .p-step.active {
+      background: rgba(31, 111, 104, 0.04);
+    }
+
+    .p-step.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--teal);
+    }
+
+    .p-step.done::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--teal);
+    }
+
+    .p-step-num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .p-step.active .p-step-num { color: var(--teal); }
+    .p-step.done .p-step-num { color: var(--teal); }
+
+    .p-step-title {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .p-step-desc {
+      font-size: 0.75rem;
+      color: var(--text-sec);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .p-step-status {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .p-step-status.waiting {
+      color: #9C978D;
+    }
+
+    .p-step-status.running {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    .p-step-status.complete {
+      color: var(--teal);
+      font-weight: 600;
+    }
+
+    .status-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: pulseDot 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
+    }
+
+    /* ============================================================
+       RESEARCH VIEW (RESULTS INTERFACE)
+       ============================================================ */
+    .research-view {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 32px 100px;
+      display: none;
+    }
+
+    .research-view.show { display: block; }
+
+    /* Header banner card */
+    .research-banner {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      padding: 32px 36px 28px;
+      margin: 32px 0 36px;
+      position: relative;
+    }
+
+    .research-banner-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-sec);
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid var(--border-lt);
+      padding: 5px 12px;
+      border-radius: var(--inner-radius);
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(196, 90, 60, 0.04);
+    }
+
+    .banner-folio {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-sec);
+    }
+
+    .banner-topic {
+      font-family: var(--font-serif);
+      font-size: 2.4rem;
+      line-height: 1.18;
+      color: var(--text);
+      margin-bottom: 16px;
+      letter-spacing: -0.4px;
+    }
+
+    .banner-meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-lt);
+    }
+
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-sec);
+    }
+
+    .meta-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .dot-teal { background: var(--teal); }
+    .dot-ochre { background: var(--ochre); }
+    .dot-accent { background: var(--accent); }
+
+    /* ============================================================
+       TWO COLUMN LAYOUT
+       ============================================================ */
+    .research-grid {
+      display: grid;
+      grid-template-columns: 1fr 370px;
+      gap: 36px;
+      align-items: start;
+    }
+
+    /* ============================================================
+       MAIN REPORT SHEET (ELEVATED EDITORIAL CRAFT)
+       ============================================================ */
+    .report-sheet {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-md);
+      padding: 44px 48px;
+    }
+
+    .sheet-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: rgba(196, 90, 60, 0.08);
+      border: 1px solid rgba(196, 90, 60, 0.2);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .sheet-title {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-lt);
+    }
+
+    /* Article content formatted nicely */
+    .report-article {
+      font-size: 0.98rem;
+      line-height: 1.85;
+      color: var(--text);
+    }
+
+    .report-article h1 {
+      font-family: var(--font-serif);
+      font-size: 1.7rem;
+      margin: 40px 0 16px;
+      line-height: 1.25;
+      color: var(--text);
+    }
+
+    .report-article h2 {
+      font-family: var(--font-serif);
+      font-size: 1.38rem;
+      margin: 36px 0 14px;
+      line-height: 1.3;
+      color: var(--text);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-lt);
+    }
+
+    .report-article h3 {
+      font-family: var(--font-sans);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 28px 0 10px;
+      color: var(--text);
+    }
+
+    .report-article h4 {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 22px 0 8px;
+      color: var(--text-sec);
+    }
+
+    .report-article p {
+      margin-bottom: 18px;
+    }
+
+    .report-article ul, .report-article ol {
+      margin: 14px 0 18px 24px;
+    }
+
+    .report-article li {
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    .report-article strong {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .report-article a {
+      color: var(--teal);
+      text-decoration: underline;
+      text-decoration-color: rgba(31,111,104,0.35);
+      text-underline-offset: 3px;
+      transition: text-decoration-color 0.2s;
+    }
+
+    .report-article a:hover {
+      text-decoration-color: var(--teal);
+    }
+
+    .report-article blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 14px 22px;
+      margin: 24px 0;
+      background: rgba(196, 90, 60, 0.04);
+      border-radius: 0 var(--inner-radius) var(--inner-radius) 0;
+      font-style: italic;
+      color: var(--text-sec);
+    }
+
+    .report-article hr {
+      border: none;
+      height: 1px;
+      background: var(--border-lt);
+      margin: 36px 0;
+    }
+
+    .report-article code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(23, 23, 23, 0.05);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #993822;
+    }
+
+    .report-article pre {
+      background: #242220;
+      color: #F4F1E8;
+      padding: 18px 22px;
+      border-radius: var(--inner-radius);
+      overflow-x: auto;
+      margin: 20px 0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+
+    .report-article pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* ============================================================
+       SIDEBAR & CARDS REFINEMENT
+       ============================================================ */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: sticky;
+      top: 80px;
+    }
+
+    .box-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .box-card:hover {
+      border-color: #CDC7B9;
+      box-shadow: var(--shadow-md);
+    }
+
+    .box-card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(244, 241, 232, 0.45);
+    }
+
+    .box-card-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .box-card-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      background: var(--white);
+      border: 1px solid var(--border-lt);
+      padding: 2px 7px;
+      border-radius: 99px;
+      color: var(--text-sec);
+    }
+
+    /* Search findings list */
+    .findings-list {
+      list-style: none;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .finding-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-lt);
+      transition: background 0.15s;
+    }
+
+    .finding-item:last-child { border-bottom: none; }
+    .finding-item:hover { background: rgba(244, 241, 232, 0.4); }
+
+    .finding-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .finding-num {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-sec);
+    }
+
+    .finding-domain {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--teal);
+      background: rgba(31, 111, 104, 0.08);
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .finding-title {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 5px;
+      line-height: 1.4;
+    }
+
+    .finding-snippet {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      line-height: 1.55;
+    }
+
+    /* Scraped evidence panel */
+    .evidence-content {
+      padding: 16px 18px;
+      font-size: 0.84rem;
+      line-height: 1.7;
+      color: var(--text-sec);
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .evidence-content.expanded { max-height: 600px; }
+
+    .evidence-expand-btn {
+      width: 100%;
+      padding: 11px 18px;
+      background: rgba(244, 241, 232, 0.5);
+      border: none;
+      border-top: 1px solid var(--border-lt);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--teal);
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .evidence-expand-btn:hover {
+      background: rgba(31, 111, 104, 0.08);
+    }
+
+    /* ============================================================
+       CRITIC & REVIEW SECTION (IMPROVED CARD BOX)
+       ============================================================ */
+    .review-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-top: 36px;
+    }
+
+    .review-card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(244, 241, 232, 0.4);
+    }
+
+    .review-score-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .review-score-digit {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .review-score-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .review-score-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-sec);
+    }
+
+    .review-score-track {
+      width: 130px;
+      height: 6px;
+      background: var(--border-lt);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+
+    .review-score-fill {
+      height: 100%;
+      background: var(--teal);
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+
+    .review-card-body {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 720px) {
+      .review-card-body { grid-template-columns: 1fr; }
+    }
+
+    .review-subbox {
+      border-radius: var(--inner-radius);
+      padding: 18px 20px;
+      border: 1px solid var(--border-lt);
+    }
+
+    .subbox-strengths {
+      background: rgba(31, 111, 104, 0.04);
+      border-color: rgba(31, 111, 104, 0.2);
+    }
+
+    .subbox-improve {
+      background: rgba(214, 168, 79, 0.06);
+      border-color: rgba(214, 168, 79, 0.25);
+    }
+
+    .subbox-header {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subbox-strengths .subbox-header { color: var(--teal); }
+    .subbox-improve .subbox-header { color: #8F691E; }
+
+    .review-items-list {
+      list-style: none;
+    }
+
+    .review-items-list li {
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: var(--text-sec);
+      padding: 5px 0 5px 18px;
+      position: relative;
+    }
+
+    .review-items-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 11px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .subbox-strengths .review-items-list li::before { background: var(--teal); }
+    .subbox-improve .review-items-list li::before { background: var(--ochre); }
+
+    .review-verdict-box {
+      padding: 14px 24px;
+      border-top: 1px solid var(--border-lt);
+      background: rgba(244, 241, 232, 0.5);
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .verdict-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      font-style: normal;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      background: rgba(196, 90, 60, 0.08);
+      border: 1px solid rgba(196, 90, 60, 0.2);
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    /* ============================================================
+       SOURCES DIRECTORY BOX
+       ============================================================ */
+    .sources-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      margin-top: 36px;
+      overflow: hidden;
+    }
+
+    .sources-card-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(244, 241, 232, 0.4);
+    }
+
+    .sources-card-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: var(--text);
+    }
+
+    .source-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border-lt);
+      gap: 16px;
+      transition: background 0.15s;
+    }
+
+    .source-row:last-child { border-bottom: none; }
+    .source-row:hover { background: rgba(244, 241, 232, 0.4); }
+
+    .source-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .source-index {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      width: 22px;
+      flex-shrink: 0;
+    }
+
+    .source-details {
+      min-width: 0;
+    }
+
+    .source-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .source-domain-url {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-sec);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .source-action-btn {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--teal);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(31, 111, 104, 0.06);
+      border: 1px solid rgba(31, 111, 104, 0.2);
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .source-action-btn:hover {
+      background: var(--teal);
+      color: var(--white);
+    }
+
+    /* ============================================================
+       ERROR STATE
+       ============================================================ */
+    .error-card {
+      display: none;
+      max-width: 680px;
+      margin: 40px auto;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--danger);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-sm);
+      padding: 24px 28px;
+    }
+
+    .error-card.show { display: block; }
+
+    .error-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--danger);
+      margin-bottom: 8px;
+    }
+
+    .error-desc {
+      font-size: 0.88rem;
+      color: var(--text-sec);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .error-btn {
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: transparent;
+      border: 1px solid var(--accent);
+      padding: 8px 18px;
+      border-radius: var(--inner-radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .error-btn:hover {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    /* ============================================================
+       READING PROGRESS BAR
+       ============================================================ */
+    .reading-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      z-index: 100;
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .research-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .sidebar { position: static; }
+      .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
+      .p-step { border-bottom: 1px solid var(--border-lt); }
+      .report-sheet { padding: 32px 24px; }
+      .ws-title { font-size: 2.3rem; }
+    }
+
+    @media (max-width: 560px) {
+      .nav { padding: 14px 20px; }
+      .workspace { padding: 40px 16px; }
+      .research-view { padding: 0 16px 60px; }
+      .pipeline { padding: 20px 16px 0; }
+      .pipeline-steps { grid-template-columns: 1fr; }
+      .banner-topic { font-size: 1.8rem; }
+      .research-banner { padding: 20px; }
+      .search-card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Reading progress bar -->
+  <div class="reading-progress" id="readingProgress"></div>
+
+  <!-- ── NAVIGATION ── -->
+  <div class="nav-wrap">
+    <nav class="nav">
+      <a class="nav-logo" href="#" onclick="goHome(); return false;">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div class="nav-logo-meta">
+          <span class="nav-logo-text">ResearchAI</span>
+          <span class="nav-logo-sub">Intelligent Desk</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <button class="nav-link-btn" onclick="goHome(); return false;">New Investigation</button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ── HOME WORKSPACE ── -->
+  <main class="workspace" id="workspace">
+    <div class="ws-header">
+      <div class="ws-pill">
+        <div class="ws-pill-dot"></div>
+        <span>Editorial Research Desk</span>
+      </div>
+      <h1 class="ws-title">Explore any question.</h1>
+      <p class="ws-subtitle">Enter your investigation topic below. Our specialized agents will search the web, scrape verified sources, synthesize a comprehensive report, and critically evaluate the findings.</p>
+    </div>
+
+    <!-- ── IMPROVED RESEARCH QUERY BOX ── -->
+    <div class="search-card">
+      <div class="search-card-top">
+        <span class="search-card-label">Research Inquiry</span>
+        <span class="search-card-hint" id="charCount">0 characters</span>
+      </div>
+
+      <!-- Multi-line auto-expanding textarea so forward text NEVER disappears -->
+      <textarea
+        class="search-textarea"
+        id="topicInput"
+        rows="2"
+        placeholder="Type a research question, deep topic, or thesis to investigate..."
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+
+      <div class="search-card-footer">
+        <div class="search-instructions">
+          Press <span class="kbd">↵ Enter</span> to run &nbsp;·&nbsp; <span class="kbd">Shift+↵</span> for newline
+        </div>
+        <button class="search-btn" id="searchBtn" onclick="startResearch()">
+          <div class="btn-spinner" id="btnSpinner"></div>
+          <span id="btnLabel">Investigate</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Example chips -->
+    <div class="examples-wrap">
+      <span class="examples-label">Suggested Inquiries</span>
+      <div class="examples-grid">
+        <button class="example-chip" onclick="fillExample(this)">Impact of AI on software engineering</button>
+        <button class="example-chip" onclick="fillExample(this)">Future of renewable energy & storage</button>
+        <button class="example-chip" onclick="fillExample(this)">Evolution of T20 cricket tactics</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── PIPELINE TIMELINE ── -->
+  <section class="pipeline" id="pipeline">
+    <div class="pipeline-card">
+      <div class="pipeline-card-header">
+        <span class="pipeline-card-title">Live Pipeline Progress</span>
+        <div class="pipeline-status-badge">
+          <div class="status-pulse"></div>
+          <span id="pipelineOverallStatus">Active Investigation</span>
+          <span id="pipelineTimer" style="margin-left:6px; font-weight:600; color:var(--text);">(0s)</span>
+        </div>
+      </div>
+      <div class="pipeline-steps">
+        <div class="p-step" id="step-search">
+          <div class="p-step-num">01 / SEARCH</div>
+          <div class="p-step-title">Information Discovery</div>
+          <div class="p-step-desc">Querying web and gathering relevant indexes</div>
+          <div class="p-step-status waiting" id="step-search-status">
+            <span>Pending</span>
+          </div>
+        </div>
+        <div class="p-step" id="step-scrape">
+          <div class="p-step-num">02 / SCRAPE</div>
+          <div class="p-step-title">Evidence Extraction</div>
+          <div class="p-step-desc">Parsing primary sources & page contents</div>
+          <div class="p-step-status waiting" id="step-scrape-status">
+            <span>Pending</span>
+          </div>
+        </div>
+        <div class="p-step" id="step-write">
+          <div class="p-step-num">03 / SYNTHESIS</div>
+          <div class="p-step-title">Report Composition</div>
+          <div class="p-step-desc">Structuring detailed analytical findings</div>
+          <div class="p-step-status waiting" id="step-write-status">
+            <span>Pending</span>
+          </div>
+        </div>
+        <div class="p-step" id="step-critic">
+          <div class="p-step-num">04 / REVIEW</div>
+          <div class="p-step-title">Critic Evaluation</div>
+          <div class="p-step-desc">Scoring rigor and identifying improvements</div>
+          <div class="p-step-status waiting" id="step-critic-status">
+            <span>Pending</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ERROR CARD ── -->
+  <div class="error-card" id="errorState">
+    <div class="error-title">Investigation Encountered an Error</div>
+    <div class="error-desc" id="errorMsg">Something went wrong while communicating with the backend.</div>
+    <button class="error-btn" onclick="goHome()">← Return to Research Desk</button>
+  </div>
+
+  <!-- ── RESEARCH RESULTS VIEW ── -->
+  <div class="research-view" id="researchView">
+
+    <!-- Top Banner Card -->
+    <header class="research-banner fade-in">
+      <div class="research-banner-top">
+        <button class="back-btn" onclick="goHome()">← New Investigation</button>
+        <span class="banner-folio">DISPATCH ID: RS-2026</span>
+      </div>
+      <h1 class="banner-topic" id="researchTopic"></h1>
+      <div class="banner-meta-strip">
+        <div class="meta-tag">
+          <div class="meta-tag-dot dot-teal"></div>
+          <span id="researchDate"></span>
+        </div>
+        <div class="meta-tag">
+          <div class="meta-tag-dot dot-ochre"></div>
+          <span>Multi-Agent Synthesis</span>
+        </div>
+        <div class="meta-tag">
+          <div class="meta-tag-dot dot-accent"></div>
+          <span>Peer Critic Verified</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Two-column grid -->
+    <div class="research-grid">
+
+      <!-- LEFT: Main Article Sheet -->
+      <article class="report-sheet fade-in">
+        <div class="sheet-badge">Synthesized Report</div>
+        <h2 class="sheet-title" id="reportTitle">Comprehensive Findings</h2>
+        <div class="report-article" id="reportArticle">
+          <!-- Rendered markdown article -->
+        </div>
+
+        <!-- Critic Review Card inside flow -->
+        <section class="review-card" id="criticCard">
+          <div class="review-card-header">
+            <div class="review-score-box">
+              <span class="review-score-digit" id="reviewScore">—</span>
+              <div class="review-score-info">
+                <span class="review-score-lbl">Quality Score</span>
+                <div class="review-score-track">
+                  <div class="review-score-fill" id="reviewBar" style="width:0%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="ws-pill" style="margin-bottom:0;">
+              <span>Independent Assessment</span>
+            </div>
+          </div>
+          <div class="review-card-body" id="reviewBody">
+            <!-- Populated via JS -->
+          </div>
+          <div class="review-verdict-box" id="reviewVerdict" style="display:none;"></div>
+        </section>
+
+        <!-- Sources Directory Card inside flow -->
+        <section class="sources-card" id="sourcesSection" style="display:none;">
+          <div class="sources-card-header">
+            <span class="sources-card-title">Verified Source Index</span>
+            <span class="box-card-badge" id="sourceCountBadge">0 Sources</span>
+          </div>
+          <div id="sourcesList">
+            <!-- Populated via JS -->
+          </div>
+        </section>
+      </article>
+
+      <!-- RIGHT: Sidebar with upgraded boxes -->
+      <aside class="sidebar">
+
+        <!-- Search Findings Box -->
+        <div class="box-card fade-in">
+          <div class="box-card-header">
+            <span class="box-card-title">Search Findings</span>
+            <span class="box-card-badge" id="findingsBadge">Indexes</span>
+          </div>
+          <ul class="findings-list" id="findingsList">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+
+        <!-- Evidence Box -->
+        <div class="box-card fade-in">
+          <div class="box-card-header">
+            <span class="box-card-title">Extracted Evidence</span>
+            <span class="box-card-badge">Scraped</span>
+          </div>
+          <div class="evidence-content" id="evidenceBody">
+            <!-- Populated via JS -->
+          </div>
+          <button class="evidence-expand-btn" id="evidenceToggle" onclick="toggleEvidence()">Expand Excerpts ↓</button>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+
+  <!-- ============================================================
+       JAVASCRIPT
+       ============================================================ -->
+  <script>
+    const API_URL = (window.location.origin && window.location.origin.startsWith('http')) 
+      ? window.location.origin 
+      : "http://127.0.0.1:8000";
+    const topicInput = document.getElementById('topicInput');
+    const charCount = document.getElementById('charCount');
+
+    // ── Auto-resizing textarea to prevent any text clipping ──
+    topicInput.addEventListener('input', function() {
+      // Auto adjust height smoothly
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 240) + 'px';
+      
+      // Update character count
+      const len = this.value.length;
+      charCount.textContent = len === 1 ? '1 character' : `${len} characters`;
+    });
+
+    // ── Enter triggers search, Shift+Enter makes newline ──
+    topicInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        startResearch();
+      }
+    });
+
+    // ── Reading progress bar ──
+    window.addEventListener('scroll', function() {
+      const bar = document.getElementById('readingProgress');
+      const researchView = document.getElementById('researchView');
+      if (researchView.classList.contains('show')) {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = docHeight > 0 ? (scrollTop / docHeight * 100) + '%' : '0%';
+      } else {
+        bar.style.width = '0%';
+      }
+    });
+
+    // ── Quick chips ──
+    function fillExample(btn) {
+      topicInput.value = btn.textContent;
+      topicInput.dispatchEvent(new Event('input'));
+      topicInput.focus();
+    }
+
+    // ── Reset to home ──
+    function goHome() {
+      document.getElementById('workspace').classList.remove('hidden');
+      document.getElementById('researchView').classList.remove('show');
+      document.getElementById('pipeline').classList.remove('show');
+      document.getElementById('errorState').classList.remove('show');
+      document.getElementById('readingProgress').style.width = '0%';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      topicInput.focus();
+    }
+
+    // ── Pipeline step helpers ──
+    function setStep(id, state) {
+      const el = document.getElementById(id);
+      const statusEl = document.getElementById(id + '-status');
+      el.classList.remove('active', 'done');
+      statusEl.classList.remove('waiting', 'running', 'complete');
+
+      if (state === 'running') {
+        el.classList.add('active');
+        statusEl.classList.add('running');
+        statusEl.innerHTML = '<div class="status-pulse"></div><span>Running...</span>';
+      } else if (state === 'done') {
+        el.classList.add('done');
+        statusEl.classList.add('complete');
+        statusEl.innerHTML = '<span>✓ Complete</span>';
+      } else {
+        statusEl.classList.add('waiting');
+        statusEl.innerHTML = '<span>Pending</span>';
+      }
+    }
+
+    function resetPipeline() {
+      ['step-search','step-scrape','step-write','step-critic'].forEach(id => setStep(id, 'waiting'));
+    }
+
+    // ── Main research execution ──
+    async function startResearch() {
+      const topic = topicInput.value.trim();
+      if (!topic) return;
+
+      document.getElementById('workspace').classList.add('hidden');
+      document.getElementById('researchView').classList.remove('show');
+      document.getElementById('errorState').classList.remove('show');
+
+      const pipeline = document.getElementById('pipeline');
+      pipeline.classList.add('show');
+      resetPipeline();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const btn = document.getElementById('searchBtn');
+      const spinner = document.getElementById('btnSpinner');
+      const label = document.getElementById('btnLabel');
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      label.textContent = 'Investigating...';
+
+      let elapsedSec = 0;
+      const timerEl = document.getElementById('pipelineTimer');
+      if (timerEl) timerEl.textContent = '(0s)';
+      const timerInterval = setInterval(() => {
+        elapsedSec++;
+        if (timerEl) timerEl.textContent = `(${elapsedSec}s)`;
+      }, 1000);
+
+      // Timed step progression simulation while waiting for backend response
+      const stepTimers = [];
+      stepTimers.push(setTimeout(() => setStep('step-search', 'running'), 200));
+      stepTimers.push(setTimeout(() => { setStep('step-search', 'done'); setStep('step-scrape', 'running'); }, 3000));
+      stepTimers.push(setTimeout(() => { setStep('step-scrape', 'done'); setStep('step-write', 'running'); }, 6500));
+      stepTimers.push(setTimeout(() => { setStep('step-write', 'done'); setStep('step-critic', 'running'); }, 12000));
+
+      try {
+        const res = await fetch(`${API_URL}/research`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic })
+        });
+
+        clearInterval(timerInterval);
+        stepTimers.forEach(t => clearTimeout(t));
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server returned status ${res.status}`);
+        }
+
+        const json = await res.json();
+        const data = json.data || {};
+
+        ['step-search','step-scrape','step-write','step-critic'].forEach(id => setStep(id, 'done'));
+        document.getElementById('pipelineOverallStatus').textContent = `Completed in ${elapsedSec}s`;
+
+        renderResults(json.topic || topic, data);
+
+      } catch (err) {
+        clearInterval(timerInterval);
+        stepTimers.forEach(t => clearTimeout(t));
+        pipeline.classList.remove('show');
+        document.getElementById('errorMsg').textContent = err.message || 'Something went wrong while connecting to the research backend.';
+        document.getElementById('errorState').classList.add('show');
+      } finally {
+        clearInterval(timerInterval);
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        label.textContent = 'Investigate';
+      }
+    }
+
+    // ── Render Results into upgraded containers ──
+    function renderResults(topic, data) {
+      document.getElementById('researchTopic').textContent = topic;
+      document.getElementById('reportTitle').textContent = `Investigation: ${topic}`;
+      
+      const now = new Date();
+      document.getElementById('researchDate').textContent = now.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      // Render Markdown Report
+      const reportRaw = (data.report || 'No analytical report generated.').toString();
+      document.getElementById('reportArticle').innerHTML = renderMarkdown(reportRaw);
+
+      // Render Findings
+      renderSearchFindings(data.search_result || '');
+
+      // Render Evidence
+      renderEvidence(data.reader_result || '');
+
+      // Render Critic Review
+      renderCritic(data.feedback || '');
+
+      // Extract Sources
+      extractSources(reportRaw, data.search_result || '');
+
+      // Display results view
+      document.getElementById('researchView').classList.add('show');
+      setTimeout(() => {
+        window.scrollTo({ top: document.getElementById('researchView').offsetTop - 30, behavior: 'smooth' });
+      }, 100);
+    }
+
+    // ── Markdown Parser ──
+    function renderMarkdown(text) {
+      if (typeof marked !== 'undefined') {
+        marked.setOptions({ breaks: true, gfm: true });
+        return marked.parse(text);
+      }
+      return text
+        .replace(/### (.*)/g, '<h3>$1</h3>')
+        .replace(/## (.*)/g, '<h2>$1</h2>')
+        .replace(/# (.*)/g, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n- (.*)/g, '\n<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+        .replace(/---/g, '<hr/>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^/, '<p>')
+        .replace(/$/, '</p>');
+    }
+
+    // ── Render Search Findings ──
+    function renderSearchFindings(raw) {
+      const container = document.getElementById('findingsList');
+      const badge = document.getElementById('findingsBadge');
+      container.innerHTML = '';
+
+      if (!raw || raw === 'No data') {
+        container.innerHTML = '<li class="finding-item"><div class="finding-snippet">No search findings recorded.</div></li>';
+        badge.textContent = '0 Findings';
+        return;
+      }
+
+      const blocks = raw.split(/\n-{3,}\n|\n----+\n/);
+      let count = 0;
+
+      blocks.forEach(block => {
+        block = block.trim();
+        if (!block) return;
+        count++;
+
+        const titleMatch = block.match(/Title:\s*(.+)/i);
+        const urlMatch = block.match(/URL:\s*(https?:\/\/\S+)/i);
+        const snippetMatch = block.match(/snippet:\s*([\s\S]*)/i);
+
+        const title = titleMatch ? titleMatch[1].trim() : `Source Record ${count}`;
+        const url = urlMatch ? urlMatch[1].trim() : '';
+        const snippet = snippetMatch ? snippetMatch[1].trim().substring(0, 160) : block.substring(0, 160);
+
+        let domain = 'web source';
+        if (url) {
+          try { domain = new URL(url).hostname.replace('www.', ''); } catch(e) { domain = url; }
+        }
+
+        const li = document.createElement('li');
+        li.className = 'finding-item';
+        li.innerHTML = `
+          <div class="finding-top">
+            <span class="finding-num">${String(count).padStart(2, '0')}</span>
+            ${url ? `<a class="finding-domain" href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(domain)} ↗</a>` : ''}
+          </div>
+          <div class="finding-title">${escapeHtml(title)}</div>
+          <div class="finding-snippet">${escapeHtml(snippet)}…</div>
+        `;
+        container.appendChild(li);
+      });
+
+      badge.textContent = `${count} ${count === 1 ? 'Finding' : 'Findings'}`;
+      if (count === 0) {
+        container.innerHTML = '<li class="finding-item"><div class="finding-snippet">No structured findings found.</div></li>';
+      }
+    }
+
+    // ── Render Evidence ──
+    function renderEvidence(raw) {
+      const body = document.getElementById('evidenceBody');
+      const toggle = document.getElementById('evidenceToggle');
+
+      if (!raw || raw === 'No data') {
+        body.innerHTML = '<p style="color:var(--text-sec); font-size:0.82rem;">No scraped excerpt content available.</p>';
+        toggle.style.display = 'none';
+        return;
+      }
+
+      const sentences = raw.split(/\.\s+/).filter(s => s.trim().length > 25);
+      if (sentences.length > 2) {
+        const listItems = sentences.slice(0, 10).map(s => `
+          <li style="padding:7px 0; border-bottom:1px solid var(--border-lt); font-size:0.82rem; line-height:1.6; color:var(--text-sec);">
+            ${escapeHtml(s.trim())}.
+          </li>
+        `).join('');
+        body.innerHTML = `<ul style="list-style:none; padding:0; margin:0;">${listItems}</ul>`;
+      } else {
+        body.innerHTML = `<p style="font-size:0.84rem; line-height:1.7;">${escapeHtml(raw)}</p>`;
+      }
+
+      body.classList.remove('expanded');
+      toggle.textContent = 'Expand Excerpts ↓';
+      toggle.style.display = body.scrollHeight > 250 ? 'block' : 'none';
+    }
+
+    function toggleEvidence() {
+      const body = document.getElementById('evidenceBody');
+      const toggle = document.getElementById('evidenceToggle');
+      const isExpanded = body.classList.toggle('expanded');
+      toggle.textContent = isExpanded ? 'Collapse Excerpts ↑' : 'Expand Excerpts ↓';
+    }
+
+    // ── Render Critic Review ──
+    function renderCritic(raw) {
+      const bodyEl = document.getElementById('reviewBody');
+      const scoreEl = document.getElementById('reviewScore');
+      const barEl = document.getElementById('reviewBar');
+      const verdictEl = document.getElementById('reviewVerdict');
+
+      if (!raw || raw === 'No data') {
+        bodyEl.innerHTML = '<p style="color:var(--text-sec); grid-column:span 2;">No evaluation remarks recorded.</p>';
+        scoreEl.textContent = '—';
+        barEl.style.width = '0%';
+        verdictEl.style.display = 'none';
+        return;
+      }
+
+      const rawStr = raw.toString();
+
+      // Score
+      const scoreMatch = rawStr.match(/Score:\s*(\d+)\s*\/\s*(\d+)/i);
+      if (scoreMatch) {
+        const score = parseInt(scoreMatch[1]);
+        const total = parseInt(scoreMatch[2]);
+        scoreEl.textContent = `${score}/${total}`;
+        const pct = (score / total) * 100;
+        barEl.style.width = pct + '%';
+        if (pct >= 70) barEl.style.background = 'var(--teal)';
+        else if (pct >= 50) barEl.style.background = 'var(--ochre)';
+        else barEl.style.background = 'var(--danger)';
+      } else {
+        scoreEl.textContent = '—';
+        barEl.style.width = '0%';
+      }
+
+      // Strengths
+      const strengthsMatch = rawStr.match(/Strengths?:\s*([\s\S]*?)(?=Areas?\s+to\s+Improve|Weaknesses?|One\s+line|Verdict|$)/i);
+      const strengths = [];
+      if (strengthsMatch) {
+        strengthsMatch[1].split('\n').forEach(line => {
+          const clean = line.replace(/^[\s\-\*•]+/, '').trim();
+          if (clean.length > 3) strengths.push(clean);
+        });
+      }
+
+      // Improvements
+      const improveMatch = rawStr.match(/(?:Areas?\s+to\s+Improve|Weaknesses?):\s*([\s\S]*?)(?=One\s+line|Verdict|$)/i);
+      const improvements = [];
+      if (improveMatch) {
+        improveMatch[1].split('\n').forEach(line => {
+          const clean = line.replace(/^[\s\-\*•]+/, '').trim();
+          if (clean.length > 3) improvements.push(clean);
+        });
+      }
+
+      // Verdict
+      const verdictMatch = rawStr.match(/(?:One\s+line\s+verdict|Verdict)[:\s]*(.*)/i);
+
+      let html = '';
+
+      if (strengths.length > 0) {
+        html += `
+          <div class="review-subbox subbox-strengths">
+            <div class="subbox-header">✓ Identified Strengths</div>
+            <ul class="review-items-list">
+              ${strengths.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (improvements.length > 0) {
+        html += `
+          <div class="review-subbox subbox-improve">
+            <div class="subbox-header">⚠ Editorial Opportunities</div>
+            <ul class="review-items-list">
+              ${improvements.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (!html) {
+        html = `<div style="grid-column:span 2; font-size:0.86rem; line-height:1.7;">${renderMarkdown(rawStr)}</div>`;
+      }
+
+      bodyEl.innerHTML = html;
+
+      if (verdictMatch && verdictMatch[1].trim()) {
+        verdictEl.innerHTML = `
+          <span class="verdict-tag">Verdict</span>
+          <span>${escapeHtml(verdictMatch[1].trim())}</span>
+        `;
+        verdictEl.style.display = 'flex';
+      } else {
+        verdictEl.style.display = 'none';
+      }
+    }
+
+    // ── Extract Sources Index ──
+    function extractSources(reportText, searchText) {
+      const section = document.getElementById('sourcesSection');
+      const list = document.getElementById('sourcesList');
+      const badge = document.getElementById('sourceCountBadge');
+      list.innerHTML = '';
+
+      const allText = reportText + '\n' + searchText;
+      const urlRegex = /https?:\/\/[^\s\)\]"',]+/g;
+      const urls = [...new Set((allText.match(urlRegex) || []))];
+
+      if (urls.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      badge.textContent = `${urls.length} ${urls.length === 1 ? 'Source' : 'Sources'}`;
+
+      urls.forEach((url, i) => {
+        let domain = '';
+        try { domain = new URL(url).hostname.replace('www.', ''); } catch(e) { domain = url; }
+        const domainParts = domain.split('.');
+        const title = domainParts[0].charAt(0).toUpperCase() + domainParts[0].slice(1);
+
+        const row = document.createElement('div');
+        row.className = 'source-row';
+        row.innerHTML = `
+          <div class="source-left">
+            <span class="source-index">${String(i + 1).padStart(2, '0')}</span>
+            <div class="source-details">
+              <div class="source-name">${escapeHtml(title)}</div>
+              <div class="source-domain-url">${escapeHtml(domain)}</div>
+            </div>
+          </div>
+          <a class="source-action-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+            <span>View Source</span>
+            <span>↗</span>
+          </a>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

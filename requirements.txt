@@ -1,0 +1,44 @@
+# ============================================
+# Core LangChain / LangGraph (LCEL + ReAct)
+# ============================================
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-OpenRouter>=0.2.0          # For OpenRouter 
+langgraph>=0.2.0                 # For creating ReAct agents (create_react_agent)
+
+# ============================================
+# OpenRouter / LLM API
+# ============================================
+OpenRouter                  
+
+# ============================================
+# Tools
+# ============================================
+tavily-python>=0.5.0             # Tavily Search API
+beautifulsoup4>=4.12.0           # Web scraping with BeautifulSoup
+lxml>=5.0.0                      # Fast HTML parser for BeautifulSoup
+requests>=2.32.0                 # HTTP requests (for scraping)
+httpx>=0.27.0                    # Async HTTP (used internally by many libs)
+
+# ============================================
+# Environment / Config
+# ============================================
+python-dotenv>=1.0.0             # Load API keys from .env
+
+# ============================================
+# Utilities
+# ============================================
+pydantic>=2.7.0                  # Data validation (LangChain dependency)
+typing-extensions>=4.10.0
+tenacity>=8.3.0                  # Retry logic (LangChain dependency)
+
+# ============================================
+# Optional but recommended
+# ============================================
+rich>=13.7.0                     # Pretty console output / debugging
+tiktoken>=0.7.0                  # Token counting for OpenAI-compatible models
+
+fastapi
+uvicorn
+python-multipart
